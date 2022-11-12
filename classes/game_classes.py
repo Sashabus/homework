@@ -104,4 +104,4 @@ while True:
                     player_1.print_info()
                     if len(monsters) == 0:
                         print("you have killed all monsters")
-                        break
+                        break  # test
