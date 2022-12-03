@@ -1,7 +1,5 @@
 import random as r
 
-monsters = []
-
 
 class Player:
     def __init__(self):
@@ -56,10 +54,13 @@ class Player:
 
 
 class Monster:
-    def __init__(self, toughness, damage, num):
+    monsters = []
+
+
+    def __init__(self, toughness, damage, monster_name):
         self.toughness = toughness
         self.damage = damage
-        self.print_info(num)
+        self.print_info(monster_name)
 
     def print_info(self, num=None):
         if num is not None:
@@ -73,15 +74,20 @@ class Monster:
     def be_damaged(self, dealt_damage, num):
         self.toughness -= dealt_damage
         if self.toughness <= 0:
-            monsters.pop(num)
+            Monster.monsters.pop(num)
             print("you killed this monster")
             player_1.kills += 1
             player_1.level_up()
 
+    @classmethod
+    def spawn_monsters(cls):
+        for i in range(3):
+            cls.monsters.append(Monster(toughness=r.randint(0, 30), damage=r.randint(0, 30), monster_name=))
+
     @staticmethod
     def print_all_info():
         n = 0
-        for monster in monsters:
+        for monster in Monster.monsters:
             print(monster.print_info(n))
             n += 1
 
@@ -94,14 +100,13 @@ while True:
         while True:
             choice = input("write the command('fight', 'exit')")
             if choice == "fight":
-                for i in range(3):
-                    monsters.append(Monster(toughness=r.randint(0, 30), damage=r.randint(0, 30), num=i))
+                Monster.spawn_monsters()
                 while True:
                     choice = int(input("which monster do you want to fight?"))
-                    player_1.be_damaged(monsters[choice].damage)
-                    monsters[choice].be_damaged(player_1.damage, choice)
+                    player_1.be_damaged(Monster.monsters[choice].damage)
+                    Monster.monsters[choice].be_damaged(player_1.damage, choice)
                     Monster.print_all_info()
                     player_1.print_info()
-                    if len(monsters) == 0:
+                    if len(Monster.monsters) == 0:
                         print("you have killed all monsters")
                         break  # test
