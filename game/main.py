@@ -42,7 +42,7 @@ class Player:
         self.toughness -= dealt_damage
         if self.toughness <= 0:
             print("game over")
-            raise
+            raise SystemExit
 
     @staticmethod
     def get_stat(stat):
@@ -54,59 +54,84 @@ class Player:
 
 
 class Monster:
-    monsters = []
+    monster_names = ['spider', 'moskovyt', 'goblin', 'slime', 'skeleton', 'ghoul', 'werewolf', 'ghost', 'bandit',
+                     'viter(super_rare)', 'witch']
 
+    monsters = {}
 
-    def __init__(self, toughness, damage, monster_name):
+    def __init__(self, toughness, damage, monster_name, monster_id):
+        self.monster_id = monster_id
         self.toughness = toughness
         self.damage = damage
-        self.print_info(monster_name)
+        self.name = monster_name
+        self.print_info()
 
-    def print_info(self, num=None):
-        if num is not None:
-            print(f"monster number {num}:")
+    def print_info(self):
+        print(f"{self.monster_id} - {self.name}")
         print(f"toughness - {self.toughness}")
         print(f"damage - {self.damage}")
+        print("===============")
 
     def deal_damage(self):
         return self.damage()
 
-    def be_damaged(self, dealt_damage, num):
+    def be_damaged(self, dealt_damage, monster_id, player):
         self.toughness -= dealt_damage
         if self.toughness <= 0:
-            Monster.monsters.pop(num)
+            Monster.monsters.pop(monster_id)
             print("you killed this monster")
-            player_1.kills += 1
-            player_1.level_up()
+            player.kills += 1
+            player.level_up()
 
     @classmethod
     def spawn_monsters(cls):
         for i in range(3):
-            cls.monsters.append(Monster(toughness=r.randint(0, 30), damage=r.randint(0, 30), monster_name=))
+            cls.monsters.update(cls.generate_monster(i))
+
+    @classmethod
+    def generate_monster(cls, index):
+        new_toughness = r.randint(0, 30)
+        new_damage = r.randint(0, 30)
+        new_monster_name = cls.generate_name()
+
+        return {
+            index: Monster(toughness=new_toughness, damage=new_damage, monster_name=new_monster_name, monster_id=index)
+        }
+
+    @classmethod
+    def generate_name(cls):
+        return cls.monster_names[r.randint(0, len(cls.monster_names) - 1)]
+        # monster_names = ['spider', 'moskovyt', 'goblin', 'slime', 'skeleton', 'ghoul', 'werewolf', 'ghost', 'bandit',
+        # monster_names[0]
 
     @staticmethod
     def print_all_info():
-        n = 0
-        for monster in Monster.monsters:
-            print(monster.print_info(n))
-            n += 1
+        for monster in Monster.monsters.values():
+            monster.print_info()
 
 
-while True:
-    choice = input("write 'start' to start the game")
-    if choice == "start":
-        player_1 = Player()
-        print("rules")
-        while True:
-            choice = input("write the command('fight', 'exit')")
-            if choice == "fight":
-                Monster.spawn_monsters()
-                while True:
-                    choice = int(input("which monster do you want to fight?"))
-                    player_1.be_damaged(Monster.monsters[choice].damage)
-                    Monster.monsters[choice].be_damaged(player_1.damage, choice)
-                    Monster.print_all_info()
-                    player_1.print_info()
-                    if len(Monster.monsters) == 0:
-                        print("you have killed all monsters")
-                        break  # test
+class Game:
+    class Fight:
+        def __init__(self, player):
+            Monster.spawn_monsters()
+            self.player = player
+            self.battle()
+
+        def damage_phase(self):
+            choice = int(input("which monster do you want to fight?"))
+            self.player.be_damaged(Monster.monsters[choice].damage)
+            Monster.monsters[choice].be_damaged(dealt_damage=self.player.damage, monster_id=choice, player=self.player)
+
+        def battle(self):
+            while True:
+                self.damage_phase()
+                if len(Monster.monsters) == 0:
+                    print("you have killed all monsters")
+                    break
+                Monster.print_all_info()
+                self.player.print_info()
+
+
+if __name__ == "__main__":
+    player_1 = Player()
+    Game.Fight(player=player_1)
